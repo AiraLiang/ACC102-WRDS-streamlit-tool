@@ -65,9 +65,7 @@ streamlit run app.py
 
 ### Product link
 The application is deployed on Streamlit Cloud:  
-`https://share.streamlit.io/[你的GitHub用户名]/[你的仓库名]/main/app.py`
-
-*(This link will be live once the repository is connected to Streamlit Cloud.)*
+`https://acc102-wrds-app-tool-zxcvb.streamlit.app/`
 
 ---
 
