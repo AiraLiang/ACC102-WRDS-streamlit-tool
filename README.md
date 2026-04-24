@@ -1,4 +1,5 @@
 ## Live Application Link:`https://acc102-wrds-app-tool-zxcvb.streamlit.app/`
+## Demo Video Link:`https://video.xjtlu.edu.cn/Mediasite/Channel/556fdc2c32b340f58d12b8179e0284435f/headless/watch/26c314591cd543b5a8357f2b8b1ed93a1d`
 
 # WRDS Financial Analysis Tool
 ## ACC102 Mini Assignment - Track 4 (Interactive Data Analysis Tool)
