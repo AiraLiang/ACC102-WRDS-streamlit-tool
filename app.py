@@ -5,17 +5,17 @@ import matplotlib.pyplot as plt
 import streamlit as st
 
 # ======================
-# 全局配置
+# Global configuration
 # ======================
 plt.style.use('seaborn-v0_8-whitegrid')
 st.set_page_config(page_title="Financial Analysis Tool", layout="wide")
 
 # ======================
-# 核心数据获取与计算函数
+# Core data acquisition and calculation functions
 # ======================
 def analyze_company(tic, wrds_username, wrds_password, start_year, end_year):
     """
-    从WRDS获取财务数据并计算指标
+    Obtain financial data from WRDS and calculate indicators.
     """
     try:
         db = wrds.Connection(wrds_username=wrds_username, wrds_password=wrds_password)
@@ -39,14 +39,14 @@ def analyze_company(tic, wrds_username, wrds_password, start_year, end_year):
         if df_raw.empty:
             return None, None
 
-        # 计算各项财务指标
+        # Calculate various financial indicators
         df_raw['Gross Margin'] = (df_raw['revt'] - df_raw['cogs']) / df_raw['revt']
         df_raw['Net Profit Margin'] = df_raw['ni'] / df_raw['revt']
         df_raw['ROE'] = df_raw['ni'] / df_raw['ceq']
         df_raw['ROA'] = df_raw['ni'] / df_raw['at']
         df_raw['EBITDA Margin'] = df_raw['ebitda'] / df_raw['revt']
         
-        # 计算ICR并处理异常值
+        # Calculate ICR and handle outliers
         df_raw['ICR'] = df_raw['ebitda'] / df_raw['xint']
         df_raw['ICR'] = df_raw['ICR'].replace([np.inf, -np.inf], np.nan)
         df_raw['ICR'] = df_raw['ICR'].fillna(999)
@@ -59,11 +59,11 @@ def analyze_company(tic, wrds_username, wrds_password, start_year, end_year):
         return None, None
 
 # ======================
-# 财务健康度评分（彩色条样式）
+# Financial Health Score (Colored Bar Style)
 # ======================
 def financial_health_summary(df, latest_year, company_label):
     """
-    彩色条健康评分样式
+    Colored Bar Health Score Style
     """
     latest = df[df['fyear'] == latest_year].iloc[0]
     
@@ -117,20 +117,20 @@ def financial_health_summary(df, latest_year, company_label):
         st.warning("Asset Efficiency: Weak (<5%)")
 
 # ======================
-# 主界面
+# Main Interface
 # ======================
 def main():
     st.title("📊 WRDS Financial Analysis Tool")
     st.markdown("---")
 
-    # 1. WRDS 登录
+    # 1. WRDS Login
     st.subheader("🔐 WRDS Account Login")
     wrds_user = st.text_input("WRDS Username:", placeholder="e.g. john123")
     wrds_pwd = st.text_input("WRDS Password:", type="password", placeholder="Your WRDS password")
 
     st.markdown("---")
 
-    # 2. 年份选择
+    # 2. Year Selection
     st.subheader("📅 Select Analysis Period")
     if "sy" not in st.session_state:
         st.session_state.sy = 2020
@@ -163,11 +163,11 @@ def main():
 
     st.markdown("---")
 
-    # 3. 图表类型选择
+    # 3. Icon Type Selection
     st.subheader("📊 Chart Type")
     chart_type = st.radio("Choose style", ["Line Plot", "Bar Chart"], horizontal=True)
 
-    # 4. 指标选择
+    # 4. Indicator Selection
     st.subheader("📈 Select Indicators to Display")
     indicators = [
         "Gross Margin",
@@ -181,19 +181,19 @@ def main():
 
     st.markdown("---")
 
-    # 5. 公司输入
+    # 5. Company Input
     st.subheader("🏢 Company(s)")
     tic1 = st.text_input("Ticker 1 (Main)", "KO").strip().upper()
     enable_compare = st.checkbox("Enable Company Comparison (vs Ticker 2)")
     tic2 = st.text_input("Ticker 2 (Compare)", "PEP").strip().upper() if enable_compare else None
 
-    # 执行分析
+    # Run Analysis
     if st.button("🚀 Run Analysis", type="primary"):
         if not wrds_user or not wrds_pwd:
             st.error("Please enter your WRDS username and password first!")
             return
 
-        # 获取主公司数据
+        # Get Parent Company Data
         df1, name1 = analyze_company(tic1, wrds_user, wrds_pwd, start_year, end_year)
         if df1 is None:
             st.error(f"❌ No data found for {tic1}. Please check the ticker symbol.")
@@ -201,7 +201,7 @@ def main():
 
         latest_year = df1['fyear'].max()
 
-        # 获取对比公司数据
+        # Get Peer Company Data
         df2, name2 = None, None
         if enable_compare and tic2:
             df2, name2 = analyze_company(tic2, wrds_user, wrds_pwd, start_year, end_year)
@@ -209,11 +209,11 @@ def main():
                 st.warning(f"No data available for {tic2}")
 
         # ==========================================================
-        # 上下排列 Key Metrics（先主公司，再对比公司）
+        # Arrange Key Metrics vertically (Parent company first, then peer comparison company)
         # ==========================================================
         st.subheader(f"📊 Key Metrics ({latest_year})")
 
-        # 1. 主公司
+        # 1. Parent Company
         st.markdown(f"### {name1} ({tic1})")
         latest1 = df1[df1['fyear'] == latest_year].iloc[0]
         c1, c2, c3, c4, c5 = st.columns(5)
@@ -229,7 +229,7 @@ def main():
             icr_val = f"{latest1['ICR']:.1f}x" if latest1['ICR'] != 999 else "N/A"
             st.metric("ICR", icr_val)
 
-        # 2. 对比公司（如果开启）
+        # 2. Peer Company (If Enabled)
         if enable_compare and df2 is not None:
             st.markdown("---")
             st.markdown(f"### {name2} ({tic2})")
@@ -250,7 +250,7 @@ def main():
         st.markdown("---")
 
         # ==========================================================
-        # 财务健康总结也上下排列
+        # Arrange Financial Health Summary vertically as well
         # ==========================================================
         if enable_compare and df2 is not None:
             st.subheader("✅ Financial Health Summary Comparison")
@@ -264,11 +264,11 @@ def main():
             financial_health_summary(df1, latest_year, f"{name1} ({tic1})")
             st.markdown("---")
 
-        # 数据下载（主公司）
+        # Data Download (Parent Company)
         csv1 = df1.to_csv(index=False).encode("utf-8")
         st.download_button("Download Main Company Data", csv1, f"{tic1}_data.csv", "text/csv")
 
-        # 对比公司数据下载（新增）
+        # Comparison Company Data Download (New)
         if enable_compare and df2 is not None:
             csv2 = df2.to_csv(index=False).encode("utf-8")
             st.download_button("Download Compare Company Data", csv2, f"{tic2}_data.csv", "text/csv")
@@ -276,14 +276,14 @@ def main():
         st.markdown("---")
 
         # ==========================================================
-        # 数据表格：先主公司，再对比公司（上下排列）
+        # Data Table: Parent Company First, Then Comparison Company (Vertical Arrangement)
         # ==========================================================
-        # 1. 主公司表格
+        # 1. Parent Company Table
         st.subheader(f"📋 {name1} ({tic1}) - {start_year}-{end_year} Financial Data")
         show_cols = ['fyear', 'revt', 'ni', 'Gross Margin', 'Net Profit Margin', 'ROE', 'ROA', 'EBITDA Margin', 'ICR']
         st.dataframe(df1[show_cols].round(4), use_container_width=True)
 
-        # 2. 对比公司表格（新增，放在主公司表格下面）
+        # 2. Comparison Company Table (New, Placed Below Parent Company Table)
         if enable_compare and df2 is not None:
             st.markdown("---")
             st.subheader(f"📋 {name2} ({tic2}) - {start_year}-{end_year} Financial Data")
@@ -291,7 +291,7 @@ def main():
 
         st.markdown("---")
 
-        # 绘图
+        # Drawing
         if not selected:
             st.info("Please select at least one indicator to display charts.")
             return
